@@ -1,0 +1,25 @@
+/* Custom styles for a full-screen, clean 3D experience */
+body {
+    margin: 0;
+    overflow: hidden;
+    font-family: 'Inter', sans-serif;
+    background-color: #1f2937;
+}
+#info {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    padding: 1rem;
+    text-align: left;
+    z-index: 10;
+    pointer-events: none; /* Ignore clicks on the info panel */
+}
+canvas {
+    display: block;
+    cursor: pointer;
+}
+/* Ensure the color palette allows clicks */
+#color-palette {
+    pointer-events: auto; 
+}

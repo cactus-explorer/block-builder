@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FPS Physics Demo (Three.js + Cannon.js)</title>
+    <!-- Load Tailwind CSS for modern styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Load Three.js library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- Load Cannon.js for Physics Engine -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cannon.js/0.6.2/cannon.min.js"></script>
+    <!-- Load Custom Styles -->
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* Define the Inter font for consistency */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
+    </style>
+</head>
+<body>
+
+<div id="info" class="text-white bg-gray-900/50 p-4 rounded-b-lg shadow-xl md:w-1/3 w-full">
+    <h1 class="text-xl font-bold mb-2">FPS Physics Demo (WASD Movement)</h1>
+    <p class="text-sm">Collision enabled! Build and jump on your custom blocks.</p>
+    <div class="mt-2 text-xs space-y-1">
+        <p><span class="font-semibold text-red-400">Action:</span> Left Click (Place Locked & Snapped 3x3x3 Block!)</p>
+        <p><span class="font-semibold text-yellow-300">Block Color:</span> Q / E or Click Swatch</p>
+        <p><span class="font-semibold text-yellow-300">Movement:</span> W, A, S, D (Collision with Boxes)</p>
+        <p><span class="font-semibold text-yellow-300">Vertical:</span> Space (Jump)</p>
+        <p><span class="font-semibold text-yellow-300">Look:</span> Mouse Movement (Requires canvas click to enable Pointer Lock)</p>
+    </div>
+</div>
+
+<!-- Color Palette UI -->
+<div id="color-palette" class="fixed bottom-4 left-4 p-2 bg-gray-900/70 backdrop-blur-sm rounded-lg shadow-2xl flex space-x-2">
+    <!-- Swatches are injected here by JS -->
+</div>
+
+<!-- Load JavaScript modules -->
+<script type="module" src="constants.js"></script>
+<script type="module" src="controls.js"></script>
+<script type="module" src="game.js"></script>
+
+</body>
+</html>
