@@ -3,165 +3,68 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FPS Cube Builder</title>
-    <style>
-        /* Base styles */
-        body {
-            margin: 0;
-            overflow: hidden;
-            background-color: #1f2937; /* Dark slate background */
-            font-family: 'Inter', sans-serif;
-            color: #f3f4f6;
-            cursor: default; /* Change cursor back after game start */
-        }
-        
-        /* Game Canvas */
-        canvas {
-            display: block;
-        }
-
-        /* Overlay UI container */
-        .overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none; /* Allows mouse clicks to pass through to the canvas */
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            align-items: center;
-            padding: 1rem;
-            box-sizing: border-box;
-            z-index: 10;
-        }
-
-        /* Instructions Box (Top Center) */
-        .instructions-box {
-            pointer-events: auto;
-            background: rgba(17, 24, 39, 0.85); /* Darker, slightly transparent background */
-            backdrop-filter: blur(5px);
-            border-radius: 12px;
-            padding: 1.5rem;
-            max-width: 90%;
-            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.3);
-            text-align: center;
-            transition: opacity 0.3s ease-in-out;
-        }
-
-        .instructions-box h1 {
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: #f3f4f6;
-            margin-bottom: 0.5rem;
-        }
-        
-        .instructions-box p {
-            font-size: 0.875rem;
-            color: #d1d5db;
-            margin-top: 0.5rem;
-        }
-
-        .instructions-box button {
-            background-color: #4f46e5; /* Indigo */
-            color: white;
-            border: none;
-            padding: 0.75rem 1.5rem;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-            margin-top: 1rem;
-            transition: background-color 0.2s, transform 0.1s;
-            pointer-events: auto;
-        }
-
-        .instructions-box button:hover {
-            background-color: #6366f1; /* Light indigo on hover */
-            transform: translateY(-1px);
-        }
-
-        /* Crosshair */
-        .crosshair {
-            width: 2px;
-            height: 2px;
-            background-color: white;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            border-radius: 50%;
-            box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.5);
-        }
-
-        /* Color Palette (Bottom Left) */
-        .color-palette-container {
-            pointer-events: auto;
-            position: absolute;
-            bottom: 1rem;
-            left: 1rem;
-            background: rgba(17, 24, 39, 0.85);
-            backdrop-filter: blur(5px);
-            border-radius: 12px;
-            padding: 0.75rem;
-            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.3);
-        }
-
-        #color-palette {
-            display: flex;
-            gap: 0.75rem;
-        }
-        
-        /* Color Swatch Styling (applied dynamically in game.js) */
-        .w-8 { width: 2rem; }
-        .h-8 { height: 2rem; }
-        .rounded-full { border-radius: 9999px; }
-        .border-2 { border-width: 2px; }
-        .border-white\/50 { border-color: rgba(255, 255, 255, 0.5); }
-        .transition-all { transition-property: all; }
-        .duration-150 { transition-duration: 150ms; }
-        .cursor-pointer { cursor: pointer; }
-        .scale-110 { transform: scale(1.1); }
-        .ring-4 { box-shadow: 0 0 0 4px; }
-        .ring-offset-2 { outline-offset: 2px; }
-        .ring-yellow-400 { box-shadow: 0 0 0 4px #fbbf24; }
-        .ring-offset-gray-900\/70 { box-shadow: 0 0 0 2px rgba(17, 24, 39, 0.7); }
-    </style>
+    <title>FPS Cube Decorator MVP</title>
+    <!-- Link to external stylesheet -->
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="crosshair"></div>
     <div class="overlay">
         <!-- Instructions Box -->
         <div id="instructions" class="instructions-box">
-            <h1>FPS Cube Builder</h1>
-            <p>Click to start and lock cursor.</p>
+            <h1>FPS Decorator MVP</h1>
+            <p>Click START to lock cursor.</p>
             <p>
                 Movement: W A S D | Look: Mouse<br>
-                Jump: Space | Place Block: Left Click<br>
-                Change Color: Q/E
+                Place Furniture: Left Click | Rotate Selected: Right Click<br>
+                Change Selected Item: Q/E
             </p>
             <button id="startButton">START</button>
         </div>
 
-        <!-- Color Palette (Bottom Left) -->
+        <!-- Color/Asset Palette (Bottom Left) -->
         <div class="color-palette-container">
             <div id="color-palette">
-                <!-- Color swatches generated by game.js -->
+                <!-- Swatches/Icons generated by SceneManager -->
             </div>
+        </div>
+        
+        <!-- UI Placeholder for Save/Load/Delete -->
+        <div style="position: absolute; top: 1rem; right: 1rem; pointer-events: auto;">
+             <!-- Note: Inline styles are kept here as they are simple operational styles, 
+                  but can be moved to CSS if necessary for full separation. -->
+             <button id="saveButton" style="background-color: #10b981; color: white; padding: 0.5rem 1rem; border: none; border-radius: 6px; margin-right: 0.5rem;">Save</button>
+             <button id="deleteButton" style="background-color: #ef4444; color: white; padding: 0.5rem 1rem; border: none; border-radius: 6px;">Delete Last</button>
         </div>
     </div>
 
     <!-- Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cannon.js/0.6.2/cannon.min.js"></script>
+    
+    <!-- Keep Firebase imports for now, as they are needed if the config is valid -->
+    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js" type="module"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js" type="module"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js" type="module"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 
-    <!-- Game Modules -->
-    <script type="module" src="constants.js"></script>
-    <script type="module" src="controls.js"></script>
-    <script type="module" src="game.js"></script>
+    <!-- Game Modules (Note the dependency order is now less critical thanks to the selector file) -->
+    <script type="module" src="src/constants.js"></script>
+    <script type="module" src="src/controls.js"></script>
+    
+    <!-- Data Services (Mock and Firebase are imported conditionally inside DataService.js) -->
+    <script type="module" src="src/data/FirebaseDataService.js"></script>
+    <script type="module" src="src/data/MockDataService.js"></script>
+    <script type="module" src="src/data/DataService.js"></script> 
+    <script type="module" src="src/data/AssetCatalog.js"></script>
+    
+    <script type="module" src="src/scene/TransformControls.js"></script>
+    <script type="module" src="src/scene/PlacementTool.js"></script>
+    <script type="module" src="src/scene/SceneManager.js"></script>
+    <script type="module" src="src/main.js"></script>
 
     <script>
-        // Start button logic to initiate controls and hide instructions
+        // Start button logic remains here to initiate controls and hide instructions
         document.getElementById('startButton').addEventListener('click', () => {
             const instructions = document.getElementById('instructions');
             if (instructions) {
