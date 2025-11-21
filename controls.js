@@ -22,11 +22,17 @@ class Controls extends EventDispatcher {
         this.onJump = () => {};
         this.onPlaceBox = () => {};
         this.onColorChange = () => {};
+        
+        this._onPointerLockChange = this._onPointerLockChange.bind(this);
     }
     connect() {}
     disconnect() {}
     dispose() { this.disconnect(); }
     update() {}
+
+    _onPointerLockChange() {
+        this.isPointerLocked = (document.pointerLockElement === this.domElement);
+    }
 }
 
 
@@ -39,7 +45,7 @@ export class FirstPersonControls extends Controls {
         super( object, domElement );
 
         this.movementSpeed = 25.0;
-        this.lookSpeed = 0.005;
+        this.lookSpeed = 20.0; 
         this.lookVertical = true;
         this.activeLook = true;
         
@@ -65,6 +71,8 @@ export class FirstPersonControls extends Controls {
         this._onContextMenu = this._onContextMenu.bind( this );
         this._onKeyDown = this._onKeyDown.bind( this );
         this._onKeyUp = this._onKeyUp.bind( this );
+        this._onStartButtonClick = this._onStartButtonClick.bind( this );
+
 
         if ( domElement !== null ) {
             this.connect( domElement );
@@ -78,13 +86,18 @@ export class FirstPersonControls extends Controls {
         super.connect( element );
         window.addEventListener( 'keydown', this._onKeyDown );
         window.addEventListener( 'keyup', this._onKeyUp );
+        
+        // Primary listeners attached to the canvas element
         this.domElement.addEventListener( 'pointermove', this._onPointerMove );
         this.domElement.addEventListener( 'pointerdown', this._onPointerDown );
         this.domElement.addEventListener( 'pointerup', this._onPointerUp );
         this.domElement.addEventListener( 'contextmenu', this._onContextMenu );
-        document.addEventListener('pointerlockchange', () => {
-            this.isPointerLocked = (document.pointerLockElement === this.domElement);
-        });
+        
+        // Pointer Lock listener attached to document
+        document.addEventListener('pointerlockchange', this._onPointerLockChange);
+        
+        // Attach listener to the specific start button element
+        document.getElementById('startButton').addEventListener('click', this._onStartButtonClick);
     }
 
     disconnect() {
@@ -94,6 +107,9 @@ export class FirstPersonControls extends Controls {
         this.domElement.removeEventListener( 'pointerdown', this._onPointerDown );
         this.domElement.removeEventListener( 'pointerup', this._onPointerUp );
         this.domElement.removeEventListener( 'contextmenu', this._onContextMenu );
+        
+        document.removeEventListener('pointerlockchange', this._onPointerLockChange);
+        document.getElementById('startButton').removeEventListener('click', this._onStartButtonClick);
     }
 
     handleResize() {
@@ -108,7 +124,7 @@ export class FirstPersonControls extends Controls {
         if ( ! this.activeLook ) actualLookSpeed = 0;
 
         // 1. Update pitch/yaw based on mouse movement
-        this._lon += this._pointerX * actualLookSpeed;
+        this._lon -= this._pointerX * actualLookSpeed; 
         if ( this.lookVertical ) this._lat -= this._pointerY * actualLookSpeed;
 
         // Clear pointer movement for next frame
@@ -134,16 +150,20 @@ export class FirstPersonControls extends Controls {
         this._lat = 90 - MathUtils.radToDeg( _spherical.phi );
         this._lon = MathUtils.radToDeg( _spherical.theta );
     }
+    
+    // --- Custom Start Button Handler ---
+    _onStartButtonClick() {
+        // Request Pointer Lock specifically on the canvas element when the button is pressed
+        if (this.domElement && this.domElement.requestPointerLock) {
+            this.domElement.requestPointerLock();
+        } 
+    }
 
     // --- Private Event Handlers ---
 
     _onPointerDown( event ) {
-        // Request pointer lock on the first click
-        if (!document.pointerLockElement) {
-            this.domElement.requestPointerLock();
-        } 
-        // If locked AND it's a left click (button 0), trigger block placement action
-        else if (event.button === 0) {
+        // Only trigger placement if pointer is already locked
+        if (document.pointerLockElement === this.domElement && event.button === 0) {
             this.onPlaceBox();
         }
     }
@@ -153,15 +173,10 @@ export class FirstPersonControls extends Controls {
     }
 
     _onPointerMove( event ) {
-        if (document.pointerLockElement === this.domElement) {
+        // Only process movement if pointer is locked to this element
+        if (this.isPointerLocked) {
             this._pointerX = event.movementX;
             this._pointerY = event.movementY;
-        } else if ( this.domElement === document ) {
-            this._pointerX = event.pageX - this._viewHalfX;
-            this._pointerY = event.pageY - this._viewHalfY;
-        } else {
-            this._pointerX = event.pageX - this.domElement.offsetLeft - this._viewHalfX;
-            this._pointerY = event.pageY - this.domElement.offsetTop - this._viewHalfY;
         }
     }
 

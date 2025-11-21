@@ -31,19 +31,24 @@ const {
 let camera, scene, renderer, controls, clock;
 let world, playerBody, ghostMesh;
 let boxMeshes = [], boxBodies = [];
-let isGrounded = false; 
+// Initialized to true to allow immediate jump on spawn.
+let isGrounded = true; 
+// Flag to guarantee the very first jump works
+let initialJumpAllowed = true; 
 
 // =====================================================================
 // GAME ACTIONS (Called by Controls)
 // =====================================================================
 
 /**
- * Executes a jump if the player is grounded.
+ * Executes a jump if the player is grounded or if it is the initial jump.
  */
 function handleJump() {
-    if (isGrounded && playerBody) { 
+    // Check if player is grounded by physics OR if this is the initial jump allowance
+    if ((isGrounded && playerBody) || initialJumpAllowed) { 
         playerBody.velocity.y = jumpVelocity;
-        isGrounded = false; // Prevents spamming jump
+        isGrounded = false; 
+        initialJumpAllowed = false; // Consume the initial allowance
     }
 }
 
@@ -126,9 +131,12 @@ function updateGhostBlock() {
     if (!camera || !playerBody || !ghostMesh) return;
 
     const size = 3; 
-    const placementDistance = playerRadius + size / 2 + 0.5; // Distance in front of the player
+    
+    // Increased the constant offset from 0.5 to 5.5 to push blocks further away.
+    const placementDistance = playerRadius + size / 2 + 5.5; 
     
     camera.getWorldDirection(_cameraDirection);
+    _cameraDirection.y = 0; // Only care about horizontal direction for placement direction
     _cameraDirection.normalize();
 
     // Start position: in front of the player, lifted slightly
@@ -221,6 +229,7 @@ function init() {
 
     // --- CAMERA ---
     camera = new PerspectiveCamera( 60, window.innerWidth / window.innerHeight, 0.1, 1000 );
+    // Set a slightly higher initial position to prevent immediate ground clipping
     camera.position.set( 0, playerRadius + 5, 50 ); 
 
     // --- CONTROLS & CLOCK ---
@@ -240,18 +249,26 @@ function init() {
 
     // --- CANNON.JS WORLD SETUP ---
     world = new World();
-    world.gravity.set( 0, -9.82, 0 ); 
+    // Gravity is set to -34.34 (3.5x Earth gravity)
+    world.gravity.set( 0, -34.34, 0 ); 
 
     // --- PLAYER BODY (Sphere for smooth collision) ---
     const playerShape = new Sphere( playerRadius );
     playerBody = new Body({
-        mass: 50, 
+        mass: 70, 
         shape: playerShape,
         position: new Vec3(camera.position.x, camera.position.y, camera.position.z),
-        linearDamping: 0.95, 
-        fixedRotation: true, // Prevent player from tipping over
+        linearDamping: 0.95, // Reverted to high but non-maximum damping
+        fixedRotation: true,
+        allowSleep: false, 
     });
     world.addBody(playerBody);
+
+    // Use collision event instead of raycast for robust ground check.
+    playerBody.addEventListener('collide', (event) => {
+        // Any collision that stops the fall sets the player as grounded
+        isGrounded = true;
+    });
 
     // --- FLOOR BODY ---
     const floorBody = new Body({
@@ -307,6 +324,7 @@ function init() {
     animate();
 }
 
+
 function onWindowResize() {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
@@ -328,20 +346,7 @@ function animate() {
     // 3. Update Ghost Block Position
     updateGhostBlock();
 
-    // 4. Raycast Ground Check
-    
-    // Raycast start: center of the player sphere
-    _rayStart.set(playerBody.position.x, playerBody.position.y, playerBody.position.z);
-    // Raycast end: slightly below the player's base
-    _rayEnd.set(playerBody.position.x, playerBody.position.y - playerRadius - 0.1, playerBody.position.z); 
-
-    _rayResult.reset(); 
-    
-    // Check for hits against any body except the player itself
-    world.raycastClosest(_rayStart, _rayEnd, {}, _rayResult);
-
-    // Player is grounded if the ray hits something
-    isGrounded = (_rayResult.hasHit && _rayResult.body !== playerBody);
+    // 4. Ground Check: Handled by the playerBody 'collide' event listener
 
 
     // 5. Apply Player Movement to Cannon Body (Velocity)
