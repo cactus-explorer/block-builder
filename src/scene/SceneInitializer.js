@@ -21,11 +21,26 @@ import {
 // --- Initialization Helpers ---
 
 function initThree(manager) {
+    // *** MODIFIED TO LOOK FOR PRE-EXISTING CANVAS ***
+    
+    // 1. Find the pre-existing canvas element by ID
+    const canvasElement = document.getElementById('gameCanvas'); // <--- Looks for this ID in your HTML
+    
     // Renderer
-    manager.renderer = new WebGLRenderer({ antialias: true });
+    if (!canvasElement) {
+        console.error("Canvas element with ID 'gameCanvas' not found. Creating a new one.");
+        // Fallback: create a new renderer and append its canvas (original behavior)
+        manager.renderer = new WebGLRenderer({ antialias: true });
+        // NOTE: manager.container is expected to be a DOM element defined elsewhere in the manager setup
+        manager.container.appendChild(manager.renderer.domElement); 
+    } else {
+        // Use the existing canvas element
+        manager.renderer = new WebGLRenderer({ antialias: true, canvas: canvasElement });
+        // DO NOT append the element, it's already in the DOM
+    }
+    
     manager.renderer.setPixelRatio(window.devicePixelRatio);
     manager.renderer.setSize(window.innerWidth, window.innerHeight);
-    manager.container.appendChild(manager.renderer.domElement);
     manager.scene.background = new Color(0x334155);
 
     // Camera & Parent Group (Fixes Gimbal Lock)
@@ -139,6 +154,7 @@ function initDynamicObjects(manager) {
 }
 
 function initControls(manager) {
+    // If using the pre-existing canvas, manager.renderer.domElement will point to it.
     const canvas = manager.renderer.domElement;
     manager.controls = new FirstPersonControls(manager.camera, manager.cameraParent, canvas);
 
