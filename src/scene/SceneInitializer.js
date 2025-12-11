@@ -24,19 +24,16 @@ function initThree(manager) {
     // *** MODIFIED TO LOOK FOR PRE-EXISTING CANVAS ***
     
     // 1. Find the pre-existing canvas element by ID
-    const canvasElement = document.getElementById('gameCanvas'); // <--- Looks for this ID in your HTML
+    const canvasElement = document.getElementById('gameCanvas'); 
     
     // Renderer
     if (!canvasElement) {
         console.error("Canvas element with ID 'gameCanvas' not found. Creating a new one.");
-        // Fallback: create a new renderer and append its canvas (original behavior)
         manager.renderer = new WebGLRenderer({ antialias: true });
-        // NOTE: manager.container is expected to be a DOM element defined elsewhere in the manager setup
         manager.container.appendChild(manager.renderer.domElement); 
     } else {
         // Use the existing canvas element
         manager.renderer = new WebGLRenderer({ antialias: true, canvas: canvasElement });
-        // DO NOT append the element, it's already in the DOM
     }
     
     manager.renderer.setPixelRatio(window.devicePixelRatio);
@@ -48,7 +45,10 @@ function initThree(manager) {
     manager.camera.position.set(0, playerRadius / 2, 0); // Camera slightly above parent origin
     
     manager.cameraParent = new Group();
-    manager.cameraParent.position.set(0, playerRadius, 50); // Player position in world
+    
+    // ✅ KEEPING THE FIX: Closer Player Start Position (Z=5)
+    manager.cameraParent.position.set(0, playerRadius, 5); // Player position in world
+    
     manager.cameraParent.add(manager.camera);
     manager.scene.add(manager.cameraParent);
 
@@ -59,13 +59,11 @@ function initThree(manager) {
     manager.scene.add(new AmbientLight(0xcccccc, 0.5));
 
     // Event listener for window resize
-    // manager.onWindowResize is already bound to the instance in SceneActions.js
     window.addEventListener('resize', manager.onWindowResize);
 }
 
 function initPhysics(manager) {
     manager.world = new World();
-    // Gravity is set to -34.34 (3.5x Earth gravity)
     manager.world.gravity.set(0, -34.34, 0); 
     
     // Player Physics Body (Sphere for smooth movement)
@@ -82,29 +80,7 @@ function initPhysics(manager) {
     
     // Collision event for robust ground check
     manager.playerBody.addEventListener('collide', (event) => {
-        
-        // --- START USER REQUESTED SIMPLIFICATION ---
-        // WARNING: This simplification allows the player to "wall jump" 
-        // or jump infinitely when touching ANY object, even from the side or top.
         manager.isGrounded = true; 
-        
-        /* // --- ORIGINAL ROBUST CHECK ---
-        const contact = event.contact;
-        const cannonUpVector = new Vec3(0, 1, 0); 
-        
-        let normal = new Vec3();
-        if (contact.bi === manager.playerBody) {
-            normal.copy(contact.ni);
-        } else {
-            normal.copy(contact.ni).scale(-1, normal);
-        }
-        
-        // Check if the normal points generally upwards (dot product > 0.5)
-        if (normal.dot(cannonUpVector) > 0.5) { 
-            manager.isGrounded = true;
-        }
-        */
-        // --- END USER REQUESTED SIMPLIFICATION ---
     });
 
     // Floor Physics Body (Static)
@@ -118,7 +94,15 @@ function initPhysics(manager) {
 
     // THREE.js Floor Mesh
     const floorGeometry = new PlaneGeometry( 200, 200, 20, 20 );
-    const floorMeshMaterial = new MeshBasicMaterial( { color: ASSETS.FLOOR.color, wireframe: true, transparent: true, opacity: 0.3 } );
+    
+    // ⏪ REVERTED CHANGE: Restore original transparent wireframe material
+    const floorMeshMaterial = new MeshBasicMaterial( { 
+        color: ASSETS.FLOOR.color, 
+        wireframe: true, 
+        transparent: true, 
+        opacity: 0.3 
+    } );
+    
     const floorMesh = new Mesh( floorGeometry, floorMeshMaterial );
     floorMesh.rotation.x = - Math.PI / 2;
     floorMesh.userData.assetId = ASSETS.FLOOR.id; 
@@ -154,11 +138,9 @@ function initDynamicObjects(manager) {
 }
 
 function initControls(manager) {
-    // If using the pre-existing canvas, manager.renderer.domElement will point to it.
     const canvas = manager.renderer.domElement;
     manager.controls = new FirstPersonControls(manager.camera, manager.cameraParent, canvas);
 
-    // Map game actions to handler methods on the manager (which are bound in SceneActions)
     manager.controls.onJump = manager.handleJump; 
     manager.controls.onPlaceObject = manager.placeObject;
     manager.controls.onRotateObject = manager.rotateObject;
@@ -176,10 +158,8 @@ function initGameMechanics(manager) {
 }
 
 function setupDataListeners(manager) {
-    // Note: manager.loadProject is defined and bound in SceneActions.js
     dataService.subscribeToProject(manager.loadProject);
     
-    // Save button setup
     document.getElementById('saveButton').addEventListener('click', manager.saveProject);
     document.getElementById('deleteButton').addEventListener('click', manager.deleteLastObject);
 }

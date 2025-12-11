@@ -37,8 +37,8 @@ export class SceneManager {
         // Game State & Objects
         this.controls = null;
         this.placementTool = null;
-        this.placedMeshes = {}; // Map of object IDs to THREE.Mesh instances (Static/User-Placed)
-        this.placedBodies = {}; // Map of object IDs to CANNON.Body instances (Static/User-Placed)
+        this.placedMeshes = {}; 
+        this.placedBodies = {}; 
         
         // Dynamic Objects (Pushable boxes)
         this.dynamicMeshes = []; 
@@ -48,25 +48,51 @@ export class SceneManager {
         this.assetIndex = 0;
         
         // --- Action Binding Delegation ---
-        // MUST RUN FIRST: This defines methods like manager.onWindowResize
         setupActions(this);
         
         // --- Initialization Delegation ---
-        // Can now safely access bound methods
         initializeScene(this);
         
+        // === DEBUGGING CHECK 1: Core Setup ===
+        if (this.renderer && this.renderer.domElement) {
+            console.log("✅ Renderer setup successful. DOM element:", this.renderer.domElement);
+            const canvas = this.renderer.domElement;
+            console.log(`Canvas ID: ${canvas.id || 'N/A'}, Size: ${canvas.width}x${canvas.height}`);
+            if (canvas.width === 0 || canvas.height === 0) {
+                 console.warn("⚠️ Canvas initialized but has zero width/height. Check CSS and window resize listener.");
+            }
+        } else {
+            console.error("❌ Renderer setup failed. this.renderer is null or missing domElement.");
+        }
         
-        // Initial UI state setup is handled in SceneActions/setupDataListeners
+        if (this.scene.children.length > 2) { 
+            console.log(`✅ Scene populated with ${this.scene.children.length} objects (should include cameraParent, lights, and objects).`);
+        } else {
+            console.warn("⚠️ Scene seems sparsely populated. Check if objects (floor, boxes) were added correctly in SceneInitializer.");
+        }
+        
         this.updateAssetSelectionUI();
     }
 
     // --- MAIN LOOP ---
 
     animate() {
+        // === DEBUGGING CHECK 2: Loop Execution ===
+        if (!this._animationStarted) {
+            console.log("▶️ Animation loop started successfully.");
+            this._animationStarted = true;
+        }
+        
+        // 1. Check for core components before rendering/updating
+        if (!this.renderer || !this.scene || !this.camera || !this.world) {
+            console.error("❌ Cannot animate: Core component(s) are missing (renderer, scene, camera, or world). Stopping loop.");
+            return;
+        }
+
         requestAnimationFrame(this.animate.bind(this));
 
         const delta = this.clock.getDelta();
-
+        
         // 1. Update Cannon.js Physics World
         this.world.step(fixedTimeStep, delta, maxSubSteps);
 
@@ -115,5 +141,14 @@ export class SceneManager {
 
         // 6. Render
         this.renderer.render(this.scene, this.camera);
+        
+        // === DEBUGGING CHECK 3: Frame Rate / Jitter Check ===
+        // Uncomment this block if the scene renders but appears to be flickering or slow.
+        /*
+        const fps = 1 / delta;
+        if (fps < 30) {
+             console.warn(`⚠️ Low FPS: ${fps.toFixed(1)} fps. Performance issue detected.`);
+        }
+        */
     }
 }
