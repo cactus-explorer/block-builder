@@ -72,12 +72,14 @@ export class SceneManager {
         }
         
         this.updateAssetSelectionUI();
+
+        // Used for logging player position every half second
+        this._lastLogTime = 0; 
     }
 
     // --- MAIN LOOP ---
 
     animate() {
-        // === DEBUGGING CHECK 2: Loop Execution ===
         if (!this._animationStarted) {
             console.log("▶️ Animation loop started successfully.");
             this._animationStarted = true;
@@ -95,6 +97,15 @@ export class SceneManager {
         
         // 1. Update Cannon.js Physics World
         this.world.step(fixedTimeStep, delta, maxSubSteps);
+        
+        // === TEMPORARY DEBUG LINE: Check Player Y Position ===
+        // This is the line that was showing NaN
+        const elapsed = this.clock.getElapsedTime();
+        if (elapsed - this._lastLogTime > 0.5) { 
+            console.log("Player Y Position (height):", this.playerBody.position.y.toFixed(2));
+            this._lastLogTime = elapsed;
+        }
+        // ====================================================
 
         // 2. Update Player Movement Physics
         
@@ -108,18 +119,21 @@ export class SceneManager {
         rightVector.crossVectors(new Vector3(0, 1, 0), _cameraDirection); 
         rightVector.normalize();
 
-        const moveSpeed = MOVEMENT_SPEED * delta;
-        const inputVelocity = new Vector3(0, 0, 0);
+        // CRITICAL FIX: Removed the unstable (1/delta) multiplier.
+        // MOVEMENT_SPEED is now treated as the target instantaneous speed (m/s).
+        const baseMoveSpeed = MOVEMENT_SPEED; 
+        const inputVelocityTHREE = new Vector3(0, 0, 0); // THREE.js Vector3 for clean calculations
 
-        if (this.controls.moveForward) inputVelocity.addScaledVector(_cameraDirection, moveSpeed);
-        if (this.controls.moveBackward) inputVelocity.addScaledVector(_cameraDirection, -moveSpeed);
-        if (this.controls.moveLeft) inputVelocity.addScaledVector(rightVector, moveSpeed);
-        if (this.controls.moveRight) inputVelocity.addScaledVector(rightVector, -moveSpeed);
+        if (this.controls.moveForward) inputVelocityTHREE.addScaledVector(_cameraDirection, baseMoveSpeed);
+        if (this.controls.moveBackward) inputVelocityTHREE.addScaledVector(_cameraDirection, -baseMoveSpeed);
+        if (this.controls.moveLeft) inputVelocityTHREE.addScaledVector(rightVector, baseMoveSpeed);
+        if (this.controls.moveRight) inputVelocityTHREE.addScaledVector(rightVector, -baseMoveSpeed);
 
         // Apply input velocity to the player body's current velocity (overriding x and z)
-        this.playerBody.velocity.x = inputVelocity.x * (1/delta);
-        this.playerBody.velocity.z = inputVelocity.z * (1/delta);
-        
+        // This is safe because inputVelocityTHREE is now using the correct units (m/s).
+        this.playerBody.velocity.x = inputVelocityTHREE.x;
+        this.playerBody.velocity.z = inputVelocityTHREE.z;
+
         // 4. Synchronize Three.js Meshes with Cannon.js Bodies
         
         // Update Camera Parent position to match player physics body
@@ -143,7 +157,6 @@ export class SceneManager {
         this.renderer.render(this.scene, this.camera);
         
         // === DEBUGGING CHECK 3: Frame Rate / Jitter Check ===
-        // Uncomment this block if the scene renders but appears to be flickering or slow.
         /*
         const fps = 1 / delta;
         if (fps < 30) {
@@ -151,4 +164,6 @@ export class SceneManager {
         }
         */
     }
+    
+    // ... (rest of SceneManager class methods like updateAssetSelectionUI, saveProject, etc.)
 }

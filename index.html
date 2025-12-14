@@ -37,9 +37,16 @@
              <button id="deleteButton" style="background-color: #ef4444; color: white; padding: 0.5rem 1rem; border: none; border-radius: 6px;">Delete Last</button>
         </div>
     </div>
-    
-    <canvas id="gameCanvas"></canvas>
-    
+
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "../build/three.module.js",
+                "three/addons/": "./jsm/"
+            }
+        }
+    </script>
+
     <!-- Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cannon.js/0.6.2/cannon.min.js"></script>
