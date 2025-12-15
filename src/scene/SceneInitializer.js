@@ -197,8 +197,6 @@ function initPhysics(manager) {
 
             loadedTexture.magFilter = THREE.LinearFilter;
             loadedTexture.minFilter = THREE.LinearMipmapLinearFilter;
-
-            loadedTexture.offset.y = -0.1;
         }
     );
 
