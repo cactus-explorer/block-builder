@@ -123,7 +123,7 @@ function initPhysics(manager) {
     // Player Physics Body (Sphere for smooth movement)
     const playerShape = new Sphere(playerRadius / 2); 
         manager.playerBody = new Body({
-        mass: 70, 
+        mass: 1, 
         shape: playerShape,
         position: new Vec3(manager.cameraParent.position.x, manager.cameraParent.position.y, manager.cameraParent.position.z), 
         velocity: new Vec3(0, 0, 0),
