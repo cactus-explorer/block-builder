@@ -50,7 +50,7 @@ function initThree(manager) {
     // 4. CAMERA
     // Camera is positioned at (0,0,0) relative to its parent group
     const camera = new PerspectiveCamera( 30, window.innerWidth / window.innerHeight, 1, 1500 );
-    camera.position.set( 0, playerRadius, 5); 
+    camera.position.set( 0, playerRadius, 0); 
     manager.cameraParent.add( camera );
     manager.camera = camera; // Attach to manager
 
@@ -151,10 +151,7 @@ function initDynamicObjects(manager) {
         const cannonBoxBody = new Body({
             mass: size * 10, 
             shape: cannonBoxShape,
-            position: new Vec3(x, y, z),
-            // Added explicit velocity and angular velocity initialization to prevent NaN
-            velocity: new Vec3(0, 0, 0),
-            angularVelocity: new Vec3(0, 0, 0) 
+            position: new Vec3(x, y, z)
         });
         manager.world.addBody(cannonBoxBody);
         manager.dynamicBodies.push(cannonBoxBody);

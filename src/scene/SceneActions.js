@@ -64,7 +64,8 @@ function placeObject() {
     });
     cannonBody.quaternion.setFromEuler(rotation.x, rotation.y, rotation.z);
     
-    this.world.addBody(cannonBody);
+    this.world.add(cannonBody);
+    manager.dynamicBodies.push(cannonBody);
     
     // Generate a temporary ID for the new object
     const newId = `obj_${Date.now()}_${Math.random().toFixed(4).substring(2)}`;
