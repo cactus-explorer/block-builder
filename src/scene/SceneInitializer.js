@@ -97,7 +97,7 @@ function initPhysics(manager) {
     manager.world.addBody(floorBody);
 
     // THREE.js Floor Mesh
-    const floorGeometry = new PlaneGeometry( 200, 200, 20, 20 );
+    const floorGeometry = new PlaneGeometry( 50, 50, 20, 20 );
     
     const textureLoader = new TextureLoader();
 
