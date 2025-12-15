@@ -1,7 +1,8 @@
 // pentominos.js - Defines the 12 Pentomino shapes
 
 const {
-    Color, BoxGeometry, MeshBasicMaterial, Group, Mesh, Vector3
+    Color, BoxGeometry, MeshBasicMaterial, Group, Mesh, Vector3,
+    TextureLoader
 } = window.THREE;
 
 const {
@@ -12,7 +13,18 @@ const {
  * Global constant defining the size (side length) of the individual unit cube 
  * that makes up each pentomino piece.
  */
-const PENTOMINO_UNIT_SIZE = 5; // 1 unit side length
+const PENTOMINO_UNIT_SIZE = 5;
+
+// --- TEXTURE LOADING ---
+const textureLoader = new TextureLoader();
+// Load the texture once and reuse it for all pentominoes.
+// The second argument is a callback for when loading is complete (optional here).
+const pentominoTexture = textureLoader.load('src/texture/textures/metal_plate_diff_4k.jpg');
+const dispMap = textureLoader.load('src/texture/textures/metal_plate_disp_4k.png');
+const metal = textureLoader.load('src/texture/textures/metal_plate_metal_4k.jpg');
+const nor = textureLoader.load('src/texture/textures/metal_plate_nor_gl_4k.jpg');
+const rough = textureLoader.load('src/texture/textures/metal_plate_rough_4k.jpg');
+
 
 /**
  * Defines the relative coordinates (x, y, z) of the 5 unit cubes 
@@ -87,8 +99,16 @@ function createPentominoAsset(key, color) {
             const group = new Group();
             // Dimensions are based on the unit size
             const geometry = new BoxGeometry(unitSize, unitSize, thickness); 
-            const material = new MeshBasicMaterial({ color: color, wireframe: false });
-
+        // --- UPDATED MATERIAL: Uses the loaded texture ---
+            const material = new MeshBasicMaterial({ 
+                map: pentominoTexture, // Apply the texture
+                color: color,          // This color will now act as a color tint over the texture
+                wireframe: false
+            });
+            material.displacementMap = dispMap;
+            material.roughnessMap = rough;
+            material.metalnessMap = metal;
+            material.normalMap  = nor;
             relativeCoords.forEach(([x, y, z]) => {
                 const cube = new Mesh(geometry, material);
                 // Position each cube relative to the group's center
@@ -130,18 +150,41 @@ function createPentominoAsset(key, color) {
 
 // Define the 12 Pentomino assets with distinct colors
 export const PENTOMINO_ASSETS = [
-    createPentominoAsset('F', 0x00FF00), // Green
-    createPentominoAsset('I', 0x0000FF), // Blue
-    createPentominoAsset('L', 0xFF8800), // Orange
-    createPentominoAsset('P', 0xFF00FF), // Magenta
-    createPentominoAsset('N', 0x00FFFF), // Cyan
-    createPentominoAsset('T', 0xFF0000), // Red
-    createPentominoAsset('U', 0xFFFF00), // Yellow
-    createPentominoAsset('V', 0x8800FF), // Purple
-    createPentominoAsset('W', 0x888888), // Gray
-    createPentominoAsset('X', 0x008888), // Teal
-    createPentominoAsset('Y', 0xFFFFFF), // White
-    createPentominoAsset('Z', 0x8B4513)  // Brown (SaddleBrown)
+    // Original: 0x00FF00 (Bright Green) -> Pastel Green/Mint
+    createPentominoAsset('F', 0x98FB98), 
+
+    // Original: 0x0000FF (Bright Blue) -> Pastel Blue/Sky Blue
+    createPentominoAsset('I', 0xAEC6E9), 
+
+    // Original: 0xFF8800 (Bright Orange) -> Pastel Orange/Peach
+    createPentominoAsset('L', 0xFFDAC1), 
+
+    // Original: 0xFF00FF (Bright Magenta) -> Pastel Pink/Lavender
+    createPentominoAsset('P', 0xFACBEA), 
+
+    // Original: 0x00FFFF (Bright Cyan) -> Pastel Cyan/Pale Turquoise
+    createPentominoAsset('N', 0xAFEEEE), 
+
+    // Original: 0xFF0000 (Bright Red) -> Pastel Red/Coral Pink
+    createPentominoAsset('T', 0xFFB3BA), 
+
+    // Original: 0xFFFF00 (Bright Yellow) -> Pastel Yellow/Cream
+    createPentominoAsset('U', 0xFFFFAD), 
+
+    // Original: 0x8800FF (Bright Purple) -> Pastel Lavender/Wisteria
+    createPentominoAsset('V', 0xC3B1E1), 
+
+    // Original: 0x888888 (Medium Gray) -> Light Gray/Silver
+    createPentominoAsset('W', 0xD3D3D3), 
+
+    // Original: 0x008888 (Teal) -> Pastel Teal/Aquamarine
+    createPentominoAsset('X', 0x7FFFD4), 
+
+    // Original: 0xFFFFFF (White) -> Keep White (Pastel is color + white)
+    createPentominoAsset('Y', 0xFFFFFF), 
+
+    // Original: 0x8B4513 (Brown/SaddleBrown) -> Tan/Light Beige
+    createPentominoAsset('Z', 0xF5F5DC)  
 ];
 
 export const PENTOMINO_KEYS = PENTOMINO_ASSETS.map(asset => asset.key);
