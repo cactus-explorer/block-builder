@@ -47,11 +47,15 @@ export class SceneManager {
         // Asset/Color Selection
         this.assetIndex = 0;
 
-        // === NEW: Pentomino Drop State ===
+        // === Pentomino Drop State ===
         this.lastDropTime = 0;
         this.dropInterval = 2.0; // Drop every 2 seconds
         this.dropZoneSize = 45; // Pentominoes drop within a 100x100 area
         this.dropHeight = 50;    // Pentominoes start 50 units above ground
+
+        // NEW: Score property
+        this.score = 0;
+        this.scoreElement = document.getElementById('scoreTracker');
         
         // --- Action Binding Delegation ---
         setupActions(this);
@@ -218,5 +222,7 @@ export class SceneManager {
         // 6. Store the new dynamic pieces 
         this.dynamicMeshes.push(pieceMesh);
         this.dynamicBodies.push(pieceBody);
+
+        this.updateScore(100);
     }
 }
