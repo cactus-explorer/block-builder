@@ -32,6 +32,7 @@ function handleJump() {
  */
 function restartGame() {
     this.setMovementEnabled(false);
+    this.hideRestartMessage();
 
     if (this.playerBody) {
         this.playerBody.position.set(0, 2, 0);
@@ -95,6 +96,9 @@ function restartGame() {
         this.world.addBody(cannonBoxBody);
         this.dynamicBodies.push(cannonBoxBody);
     }
+    
+    this.isScoringPaused = false;
+    this.score = 0;
 
     this.setMovementEnabled(true);
     console.log("Game restarted");
@@ -147,6 +151,8 @@ export function setupActions(manager) {
     manager.onWindowResize = onWindowResize.bind(manager);
     manager.fadeScreenToRed = fadeScreenToRed.bind(manager);
     manager.updateScore = updateScore.bind(manager);
+    manager.createRestartMessage = createRestartMessage.bind(manager);
+    manager.hideRestartMessage = hideRestartMessage.bind(manager);
     manager.updateAssetSelectionUI = updateAssetSelectionUI.bind(manager);
 
     setupKeyboardRestartListener(manager);
@@ -211,6 +217,7 @@ function fadeScreenToRed(targetColor = new Color(0xFF0000), maxOpacity = 0.8, du
         maxOpacity: maxOpacity,
         overlayMesh: overlayMesh,
         onComplete: () => {
+            this.createRestartMessage();
             this.isScoringPaused = true;
             onComplete();
         },
@@ -302,4 +309,49 @@ function updateAssetSelectionUI() {
 
         paletteContainer.appendChild(swatch);
     });
+}
+
+/**
+ * Creates and displays a UI message prompting the user to restart.
+ */
+function createRestartMessage() {
+    let messageElement = document.getElementById('restart-message');
+    if (messageElement) {
+        messageElement.style.display = 'block';
+        return;
+    }
+
+    messageElement = document.createElement('div');
+    messageElement.id = 'restart-message';
+
+    messageElement.style.position = 'fixed';
+    messageElement.style.top = '50%';
+    messageElement.style.left = '50%';
+    messageElement.style.transform = 'translate(-50%, -50%)';
+    messageElement.style.color = 'white';
+    messageElement.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+    messageElement.style.padding = '20px';
+    messageElement.style.borderRadius = '10px';
+    messageElement.style.fontFamily = 'monospace';
+    messageElement.style.fontSize = '24px';
+    messageElement.style.textAlign = 'center';
+    messageElement.style.zIndex = '1000';
+
+    messageElement.innerHTML = `
+    <p>GAME OVER</p>
+    <p>Press <span style="color: yellow; font-weight: bold;">R</span> to Restart</p>
+    `;
+
+    document.body.appendChild(messageElement);
+
+    this.restartMessageElement = messageElement;
+}
+
+/**
+ * Hides the restart message element.
+ */
+function hideRestartMessage() {
+    if (this.restartMessageElement) {
+        this.restartMessageElement.style.display = 'none';
+    }
 }
