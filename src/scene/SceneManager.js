@@ -103,6 +103,26 @@ export class SceneManager {
         const delta = this.clock.getDelta();
         const elapsed = this.clock.getElapsedTime();
 
+        if (this._fadeState && this._fadeState.active) {
+            const { startTime, peakTime, maxOpacity, overlayMesh, onComplete } = this._fadeState;
+            
+            // --- Calculation for fade IN (only) ---
+            let progress = (elapsed - startTime) / (peakTime - startTime);
+            
+            if (progress >= 1.0) {
+                // End of fade: Set final opacity and deactivate
+                overlayMesh.material.opacity = maxOpacity;
+                this._fadeState.active = false;
+                onComplete();
+                
+                // NOTE: If you want it to fade *back out* automatically, 
+                // the fade logic needs to be extended to a two-phase process (in and out).
+            } else {
+                // Interpolate the opacity: Goes from 0.0 to maxOpacity
+                overlayMesh.material.opacity = maxOpacity * progress;
+            }
+        }
+
         // === NEW: Pentomino Drop Logic ===
         if (document.hasFocus() && elapsed > this.lastDropTime + this.dropInterval) {
             this.dropRandomPentomino();
@@ -145,7 +165,7 @@ export class SceneManager {
         // Update Camera Parent position to match player physics body
         this.cameraParent.position.copy(this.playerBody.position); 
         
-// Synchronize Dynamic (pushable/dropping) Boxes
+        // Synchronize Dynamic (pushable/dropping) Boxes
         for (let i = 0; i < this.dynamicMeshes.length; i++) {
             const mesh = this.dynamicMeshes[i];
             const body = this.dynamicBodies[i];

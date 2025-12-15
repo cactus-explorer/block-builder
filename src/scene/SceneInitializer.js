@@ -7,6 +7,8 @@ const {
     TextureLoader, MeshStandardMaterial, RepeatWrapping, SRGBColorSpace
 } = window.THREE;
 
+const COLLISION_VELOCITY_THRESHOLD = 5; // Example: 5 m/s or greater
+
 const { 
     World, Body, Sphere, Plane, Box, Vec3 
 } = window.CANNON;
@@ -20,6 +22,56 @@ import {
 } from '../constants.js';
 
 // --- Initialization Helpers ---
+/**
+ * Sets up collision listeners on the player body to detect high-velocity impacts.
+ * @param {SceneManager} manager
+ */
+function setupCollisionDetection(manager) {
+    if (!manager.playerBody) {
+        console.error("Cannot set up collision detection: Player body is null.");
+        return;
+    }
+
+    // 'collide' event is emitted when the body collides with another body.
+    manager.playerBody.addEventListener('collide', (event) => {
+        const otherBody = event.body; // The body the player collided with
+        const contact = event.contact; // Cannon.js contact manifold data
+
+        // 1. Calculate the magnitude of the relative velocity at the collision point.
+        // The collision event provides contact.getImpactVelocityAlongNormal()
+        // or we can look at the relative velocity. For simplicity and impact,
+        // let's look at the velocity of the body that hit us.
+        
+        // Use the total velocity of the impacting body (optional: only use non-static bodies)
+        if (otherBody.mass === 0) return; // Ignore static objects like the floor/placed blocks
+
+        const impactingVelocityMagnitude = otherBody.velocity.length();
+
+        // 2. Check against the threshold
+        if (impactingVelocityMagnitude >= COLLISION_VELOCITY_THRESHOLD) {
+            
+            // You can also calculate the strength based on mass * velocity, etc.
+            const impactForceEstimate = otherBody.mass * impactingVelocityMagnitude;
+
+            console.log(
+                `💥 HIGH-VELOCITY IMPACT DETECTED! ` + 
+                `Impacting Body Mass: ${otherBody.mass.toFixed(1)}, ` +
+                `Velocity: ${impactingVelocityMagnitude.toFixed(2)} m/s, ` +
+                `Threshold: ${COLLISION_VELOCITY_THRESHOLD} m/s`
+            );
+            console.log(`Estimated Impact Force (M*V): ${impactForceEstimate.toFixed(1)}`);
+            
+            // Optional: Immediately trigger the red fade effect (assuming it's bound)
+            if (manager.fadeScreenToRed) {
+                // Fade to red over a short time, scaling opacity based on velocity
+                const opacity = Math.min(1.0, (impactingVelocityMagnitude / 15));
+                manager.fadeScreenToRed(new Color(0xFF0000), opacity, 0.2, () => {
+                     // Optionally fade out here
+                });
+            }
+        }
+    });
+}
 
 function initThree(manager) {
     // 1. HTML Container
@@ -237,6 +289,11 @@ function initControls(manager) {
         }
     });
 
+    manager.controls.onFadeScreen = () => {
+        // Fade to red (0xFF0000) over 0.3 seconds.
+        manager.fadeScreenToRed();
+    };
+
     manager.controls.onJump = manager.handleJump; 
     manager.controls.onPlaceObject = manager.placeObject;
     manager.controls.onRotateObject = manager.rotateObject;
@@ -271,4 +328,5 @@ export function initializeScene(manager) {
     initControls(manager);
     initGameMechanics(manager);
     setupDataListeners(manager);
+    setupCollisionDetection(manager);
 }

@@ -108,7 +108,7 @@ function createPentominoAsset(key, color) {
             const cubeShape = new Box(halfExtents);
 
             const body = new Body({
-                mass: 0, // Static object
+                mass: 20, // Static object
                 position: new Vec3(position.x, position.y, position.z),
             });
             body.quaternion.setFromEuler(rotation.x, rotation.y, rotation.z);
