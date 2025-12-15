@@ -102,7 +102,6 @@ export class SceneManager {
         // This is the line that was showing NaN
         const elapsed = this.clock.getElapsedTime();
         if (elapsed - this._lastLogTime > 0.5) { 
-            console.log("Player Y Position (height):", this.playerBody.position.y.toFixed(2));
             this._lastLogTime = elapsed;
         }
         // ====================================================
@@ -155,15 +154,5 @@ export class SceneManager {
 
         // 6. Render
         this.renderer.render(this.scene, this.camera);
-        
-        // === DEBUGGING CHECK 3: Frame Rate / Jitter Check ===
-        /*
-        const fps = 1 / delta;
-        if (fps < 30) {
-             console.warn(`⚠️ Low FPS: ${fps.toFixed(1)} fps. Performance issue detected.`);
-        }
-        */
     }
-    
-    // ... (rest of SceneManager class methods like updateAssetSelectionUI, saveProject, etc.)
 }
