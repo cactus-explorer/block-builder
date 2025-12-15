@@ -193,7 +193,7 @@ function initPhysics(manager) {
             loadedTexture.wrapS = RepeatWrapping;
             loadedTexture.wrapT = RepeatWrapping;
             loadedTexture.colorSpace = SRGBColorSpace;
-            loadedTexture.repeat.set(100, 1);
+            loadedTexture.repeat.set(5, 1);
 
             loadedTexture.magFilter = THREE.LinearFilter;
             loadedTexture.minFilter = THREE.LinearMipmapLinearFilter;
@@ -205,7 +205,9 @@ function initPhysics(manager) {
     const fenceMaterial = new MeshBasicMaterial({
         map: fenceTexture,
         side: THREE.FrontSide,
-        color: 0xffffff
+        color: 0xffffff,
+        transparent: true,
+        opacity: 1,
     });
 
     const wallGeomtry = new BoxGeometry(wallLength, wallHeight, wallThickness);
