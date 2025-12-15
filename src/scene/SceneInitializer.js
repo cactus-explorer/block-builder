@@ -3,7 +3,8 @@
 const { 
     Group, Scene, PerspectiveCamera, WebGLRenderer, Clock, 
     DirectionalLight, AmbientLight, Color, 
-    BoxGeometry, MeshBasicMaterial, Mesh, PlaneGeometry, Vector3
+    BoxGeometry, MeshBasicMaterial, Mesh, PlaneGeometry, Vector3, 
+    TextureLoader, MeshStandardMaterial, RepeatWrapping, SRGBColorSpace
 } = window.THREE;
 
 const { 
@@ -27,6 +28,11 @@ function initThree(manager) {
     
     // 2. RENDERER SETUP (Fixed: manager.renderer is null)
     const renderer = new WebGLRenderer( { antialias: true } );
+    container.appendChild( renderer.domElement );
+    manager.renderer = renderer;
+    manager.renderer.outputColorSpace = SRGBColorSpace;
+    manager.scene.background = new Color( 0x87ceeb);
+
     renderer.setPixelRatio( window.devicePixelRatio );
     renderer.setSize( window.innerWidth, window.innerHeight );
     container.appendChild( renderer.domElement );
@@ -87,19 +93,35 @@ function initPhysics(manager) {
         shape: new Plane() // Default normal is (1, 0, 0)
     });
 
-    // CRITICAL FIX: Rotate 90 degrees around the X-axis to align the normal with Y
     floorBody.quaternion.setFromAxisAngle(new Vec3(1, 0, 0), -Math.PI / 2); 
     manager.world.addBody(floorBody);
 
     // THREE.js Floor Mesh
     const floorGeometry = new PlaneGeometry( 200, 200, 20, 20 );
     
-    // Debug Material: Make floor opaque and bright red to confirm visibility
-    const floorMeshMaterial = new MeshBasicMaterial( { 
+    const textureLoader = new TextureLoader();
 
-        wireframe: true, 
-        transparent: false, 
-        opacity: 1.0 
+    const texture = textureLoader.load( "src/texture/grass.jpg", 
+        function(loadedTexture) {
+            const repeatAmount = 100;
+            loadedTexture.wrapS = RepeatWrapping;
+            loadedTexture.wrapT = RepeatWrapping;
+            loadedTexture.repeat.set(repeatAmount, repeatAmount);
+
+            loadedTexture.colorSpace = SRGBColorSpace;
+        },
+        undefined,
+        function(err) {
+            console.error("Texture loading failed");
+        }
+    );
+
+    // Debug Material: Make floor opaque and bright red to confirm visibility
+    const floorMeshMaterial = new MeshStandardMaterial( { 
+        map: texture,
+        side: THREE.DoubleSide,
+        roughness: 1.0,
+        metalness: 0.1
     } );
     
     const floorMesh = new Mesh( floorGeometry, floorMeshMaterial );
