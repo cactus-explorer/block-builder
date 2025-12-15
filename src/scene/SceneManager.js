@@ -55,6 +55,7 @@ export class SceneManager {
 
         // NEW: Score property
         this.score = 0;
+        this.isScoringPaused = false; 
         this.scoreElement = document.getElementById('scoreTracker');
         
         // --- Action Binding Delegation ---

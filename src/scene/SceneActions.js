@@ -98,7 +98,6 @@ export function setupActions(manager) {
 
     manager.onWindowResize = onWindowResize.bind(manager);
     manager.fadeScreenToRed = fadeScreenToRed.bind(manager);
-1
     manager.updateScore = updateScore.bind(manager);
     manager.updateAssetSelectionUI = updateAssetSelectionUI.bind(manager);
 
@@ -164,6 +163,7 @@ function fadeScreenToRed(targetColor = new Color(0xFF0000), maxOpacity = 0.8, du
         maxOpacity: maxOpacity,
         overlayMesh: overlayMesh,
         onComplete: () => {
+            this.isScoringPaused = true;
             onComplete();
         },
     };
@@ -176,9 +176,19 @@ function fadeScreenToRed(targetColor = new Color(0xFF0000), maxOpacity = 0.8, du
  * @param {number} points - The amount to add to the current score.
  */
 function updateScore(points) {
-    this.score += points;
-    if (this.scoreElement) {
-        this.scoreElement.textContent = `SCORE: ${this.score}`;
+    // If points is 0, we assume it's a reset (like from restartGame)
+    if (points === 0 && this.scoreElement) {
+        this.score = 0;
+        this.scoreElement.textContent = `SCORE: 0`;
+        return;
+    }
+    
+    // Only update if not paused, assuming `this.isScoringPaused` is defined in SceneManager
+    if (!this.isScoringPaused) { // <-- This check needs to be solid
+        this.score += points;
+        if (this.scoreElement) {
+            this.scoreElement.textContent = `SCORE: ${this.score}`;
+        }
     }
 }
 
