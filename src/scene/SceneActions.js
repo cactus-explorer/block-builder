@@ -48,6 +48,54 @@ function restartGame() {
         this._fadeState.active = false;
     }
 
+    for (const mesh of this.dynamicMeshes) {
+        this.scene.remove(mesh);
+    }
+
+    for (const body of this.dynamicBodies) {
+        this.world.removeBody(body);
+    }
+
+    this.dynamicMeshes = [];
+    this.dynamicBodies = [];
+
+    console.log(`Removed ${this.dynamicMeshes.length} dynamic blocks.`);
+
+    this.lastDropTime = 0;
+
+    if (!this.metalBlockMaterial) {
+        console.error("CRITICAL: this.metalBlockMaterial is undefined. Blocks will be invisible or fail to load. Check SceneInitializer.js -> initThree.");
+    }
+
+    for (let i = 0; i < 20; i++) {
+        const size = Math.random() * 2 + 1; // Size between 1 and 3 meters
+        const threeBoxGeometry = new BoxGeometry( size, size, size );
+        // Use 'this' for the material
+        const randomColorHex = blockColors[Math.floor(Math.random() * blockColors.length)];
+        const threeBoxMaterial = new MeshBasicMaterial({
+            color: new Color(randomColorHex)
+        });
+
+        const boxMesh = new Mesh( threeBoxGeometry, threeBoxMaterial );
+
+        const x = Math.random() * 50 - 25; // Random x between -75 and 75
+        const z = Math.random() * 50 - 25; // Random z between -75 and 75
+        const y = size / 2 + 0.1; // Ensure it starts slightly above ground
+
+        boxMesh.position.set(x, y, z);
+        this.scene.add( boxMesh );
+        this.dynamicMeshes.push(boxMesh);
+
+        const cannonBoxShape = new Box(new Vec3(size/2, size/2, size/2));
+        const cannonBoxBody = new Body({
+            mass: size * 10, 
+            shape: cannonBoxShape,
+            position: new Vec3(x, y, z)
+        });
+        this.world.addBody(cannonBoxBody);
+        this.dynamicBodies.push(cannonBoxBody);
+    }
+
     this.setMovementEnabled(true);
     console.log("Game restarted");
 }
