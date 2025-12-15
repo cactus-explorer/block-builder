@@ -105,6 +105,28 @@ export class SceneManager {
         const delta = this.clock.getDelta();
         const elapsed = this.clock.getElapsedTime();
 
+        // === Dynamic Lighting Update ===
+        if (this.dynamicLight) {
+            // The light's position changes sinusoidally over time, creating a day/night cycle effect.
+            // Example: A cycle length of ~60 seconds (using a 0.1 frequency)
+            const cycleSpeed = 0.1; 
+            const radius = 50; // Distance of the sun/light from the center
+
+            const x = Math.sin(elapsed * cycleSpeed) * radius;
+            const y = Math.cos(elapsed * cycleSpeed) * radius; // Y goes up and down
+
+            this.dynamicLight.position.set(x, y + 20, 0); // +20 ensures it stays generally high
+            
+            // Make the light intensity dim when "below the horizon" (y < 0)
+            if (y < -10) { 
+                // Nighttime
+                this.dynamicLight.intensity = Math.max(0.2, (y + 20) / 30 * 2.0); 
+            } else {
+                // Daytime
+                this.dynamicLight.intensity = 2.0;
+            }
+        }
+
         if (this._fadeState && this._fadeState.active) {
             const { startTime, peakTime, maxOpacity, overlayMesh, onComplete } = this._fadeState;
             

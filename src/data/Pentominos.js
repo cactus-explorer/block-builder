@@ -111,6 +111,7 @@ function createPentominoAsset(key, color) {
             material.normalMap  = nor;
             relativeCoords.forEach(([x, y, z]) => {
                 const cube = new Mesh(geometry, material);
+                cube.castShadow = true;
                 // Position each cube relative to the group's center
                 cube.position.set(x * unitSize, y * unitSize, z * unitSize);
                 group.add(cube);

@@ -8,6 +8,7 @@ const {
 } = window.THREE;
 
 const COLLISION_VELOCITY_THRESHOLD = 5; // Example: 5 m/s or greater
+const mapSize = 4;
 
 const { 
     World, Body, Sphere, Plane, Box, Vec3 
@@ -74,13 +75,18 @@ function initThree(manager) {
     // 1. HTML Container
     const container = document.createElement( 'div' );
     document.body.appendChild( container );
-    
+
     // 2. RENDERER SETUP (Fixed: manager.renderer is null)
     const renderer = new WebGLRenderer( { antialias: true } );
     container.appendChild( renderer.domElement );
     manager.renderer = renderer;
     manager.renderer.outputColorSpace = SRGBColorSpace;
     manager.scene.background = new Color( 0x87ceeb);
+
+    // ADD THIS LINE:
+    manager.renderer.shadowMap.enabled = true; // Enables shadow mapping
+    // Optional (but good practice): Configure the shadow map type
+    manager.renderer.shadowMap.type = THREE.PCFSoftShadowMap;// 2. RENDERER SETUP (Fixed: manager.renderer is null)
 
     renderer.setPixelRatio( window.devicePixelRatio );
     renderer.setSize( window.innerWidth, window.innerHeight );
@@ -103,9 +109,36 @@ function initThree(manager) {
     manager.camera = camera; // Attach to manager
 
     // 5. Lighting
-    const light = new DirectionalLight(0xffffff, 1.5);
-    light.position.set(10, 10, 10).normalize();
-    manager.scene.add(light);
+    
+    // DELETE: const light = new DirectionalLight(0xffffff, 1.5);
+    // DELETE: light.position.set(10, 10, 10).normalize();
+    // DELETE: manager.scene.add(light);
+
+    // --- NEW DYNAMIC LIGHT SETUP ---
+    
+// a. Create a Directional Light for the "Sun/Moon"
+    const dynamicSun = new DirectionalLight(0xffffff, 2.0);
+    dynamicSun.position.set(10, 50, 10); 
+    
+    // ADD THESE LINES:
+    dynamicSun.castShadow = true; // CRITICAL: This light will cast shadows
+
+    // OPTIONAL: Configure Shadow Camera and Bounds (VERY IMPORTANT FOR DIRECTIONAL LIGHT)
+    // Adjust these values based on your scene size to avoid shadow clipping/banding.
+    const shadowSize = 100;
+    dynamicSun.shadow.camera.left = -shadowSize;
+    dynamicSun.shadow.camera.right = shadowSize;
+    dynamicSun.shadow.camera.top = shadowSize;
+    dynamicSun.shadow.camera.bottom = -shadowSize;
+    dynamicSun.shadow.camera.near = 0.5;
+    dynamicSun.shadow.camera.far = 150;
+    dynamicSun.shadow.mapSize.width = 1024 * 2**mapSize; // Shadow texture resolution (must be power of 2)
+    dynamicSun.shadow.mapSize.height = 1024 * 2**mapSize;
+
+    manager.scene.add(dynamicSun);
+    manager.dynamicLight = dynamicSun;
+    
+    // b. Ambient Light (remains static)
     manager.scene.add(new AmbientLight(0xcccccc, 0.5));
 
 
@@ -174,6 +207,7 @@ function initPhysics(manager) {
     
     const floorMesh = new Mesh( floorGeometry, floorMeshMaterial );
     floorMesh.rotation.x = - Math.PI / 2;
+    floorMesh.receiveShadow = true;
     manager.scene.add( floorMesh );
 
     const wallLength = 50;
@@ -251,6 +285,7 @@ function initDynamicObjects(manager) {
         const randomColor = blockColors[Math.floor(Math.random() * blockColors.length)];
         const threeBoxMaterial = new MeshBasicMaterial( { color: randomColor, wireframe: false } );
         const boxMesh = new Mesh( threeBoxGeometry, threeBoxMaterial );
+        boxMesh.castShadow = true;
 
         const x = Math.random() * 50 - (50 / 2); // Random x between -75 and 75
         const z = Math.random() * 50 - (50 / 2); // Random z between -75 and 75
