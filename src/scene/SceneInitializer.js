@@ -8,7 +8,7 @@ const {
 } = window.THREE;
 
 const COLLISION_VELOCITY_THRESHOLD = 5; // Example: 5 m/s or greater
-const mapSize = 4;
+const mapSize = 1;
 
 const { 
     World, Body, Sphere, Plane, Box, Vec3 
