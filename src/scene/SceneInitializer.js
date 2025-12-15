@@ -127,6 +127,72 @@ function initPhysics(manager) {
     floorMesh.rotation.x = - Math.PI / 2;
     floorMesh.userData.assetId = ASSETS.FLOOR.id; 
     manager.scene.add( floorMesh );
+
+    const wallLength = 50;
+    const wallHeight = 4;
+    const wallThickness = 0.5;
+    const halfLength = wallLength / 2;
+    const buryDepth = 1;
+    const centerHeight = (wallHeight / 2) - buryDepth;
+    const fenceTexturePath = "src/texture/fence.png";
+
+    const fenceTexture = textureLoader.load(fenceTexturePath,
+        function(loadedTexture) {
+            loadedTexture.wrapS = RepeatWrapping;
+            loadedTexture.wrapT = RepeatWrapping;
+            loadedTexture.colorSpace = SRGBColorSpace;
+            loadedTexture.repeat.set(100, 1);
+
+            loadedTexture.magFilter = THREE.LinearFilter;
+            loadedTexture.minFilter = THREE.LinearMipmapLinearFilter;
+
+            loadedTexture.offset.y = -0.1;
+        }
+    );
+
+    const fenceMaterial = new MeshBasicMaterial({
+        map: fenceTexture,
+        side: THREE.FrontSide,
+        color: 0xffffff
+    });
+
+    const wallGeomtry = new BoxGeometry(wallLength, wallHeight, wallThickness);
+
+    const physicsWallShape = new Box(new Vec3(halfLength, wallHeight / 2, wallThickness / 2));
+
+    const wallPositions = [
+        { position: new Vec3(0, centerHeight, halfLength), rotation: 0 },
+        { position: new Vec3(0, centerHeight, -halfLength), rotation: 0 },
+        { position: new Vec3(-halfLength, centerHeight, 0), rotation: Math.PI / 2 },
+        { position: new Vec3(halfLength, centerHeight, 0), rotation: Math.PI / 2 }
+    ];
+
+    wallPositions.forEach(wallData => {
+        const wallBody = new Body({
+            mass: 0,
+            shape: physicsWallShape,
+            position: wallData.position
+        });
+
+        if (wallData.rotation !== 0) {
+            wallBody.quaternion.setFromAxisAngle(new Vec3(0, 1, 0), wallData.rotation);
+        }
+
+        manager.world.addBody(wallBody);
+
+        const wallMesh = new Mesh(wallGeomtry, fenceMaterial);
+
+        wallMesh.position.copy(wallData.position);
+        wallMesh.rotation.y = wallData.rotation;
+
+        if (wallData.rotation !== 0) {
+            fenceTexture.repeat.set(100, 1);
+        } else {
+            fenceTexture.repeat.set(100, 1);
+        }
+
+        manager.scene.add(wallMesh);
+    });
 }
 
 function initDynamicObjects(manager) {
