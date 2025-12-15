@@ -51,7 +51,7 @@ export class SceneManager {
         // === NEW: Pentomino Drop State ===
         this.lastDropTime = 0;
         this.dropInterval = 2.0; // Drop every 2 seconds
-        this.dropZoneSize = 100; // Pentominoes drop within a 100x100 area
+        this.dropZoneSize = 45; // Pentominoes drop within a 100x100 area
         this.dropHeight = 50;    // Pentominoes start 50 units above ground
         
         // --- Action Binding Delegation ---
@@ -201,12 +201,12 @@ export class SceneManager {
         
         const initialPosition = new Vector3(x, y, z);
 
-        // 3. Determine random rotation (X, Y, Z) for complex orientations
-        // Rotate in 90-degree increments for easier stacking, but mirror randomly.
-        const rx = Math.floor(Math.random() * 4) * Math.PI / 2; // 0, 90, 180, 270 degrees
-        const ry = Math.floor(Math.random() * 4) * Math.PI / 2;
-        const rz = Math.floor(Math.random() * 4) * Math.PI / 2;
-        const initialRotation = new Euler(rx, ry, rz);
+        // 3. Determine completely random rotation (X, Y, Z) for complex orientations
+        // The rotation range is 0 to 2*PI (0 to 360 degrees) for true randomness.        
+        const rx = Math.random() * Math.PI * 2;
+        const ry = Math.random() * Math.PI * 2;
+        const rz = Math.random() * Math.PI * 2;
+        const initialRotation = new Euler(rx, ry, rz); // Assuming Euler is imported
         
         // 4. Create THREE.js Mesh Group
         const pieceMesh = asset.createMesh(1); // 1 is the thickness

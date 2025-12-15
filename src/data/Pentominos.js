@@ -8,11 +8,15 @@ const {
     Body, Box, Vec3
 } = window.CANNON;
 
+/**
+ * Global constant defining the size (side length) of the individual unit cube 
+ * that makes up each pentomino piece.
+ */
+const PENTOMINO_UNIT_SIZE = 5; // 1 unit side length
 
 /**
  * Defines the relative coordinates (x, y, z) of the 5 unit cubes 
- * that form each Pentomino piece. Z=0 for a flat arrangement.
- * The pieces are centered around the origin (0, 0, 0) for stability.
+// ... (rest of the PENTOMINO_SHAPES object remains the same)
  */
 const PENTOMINO_SHAPES = {
     // I (Straight) - 5x1
@@ -60,7 +64,7 @@ const PENTOMINO_SHAPES = {
  */
 function createPentominoAsset(key, color) {
     const relativeCoords = PENTOMINO_SHAPES[key];
-    const unitSize = 1; // 1x1x1 unit cube
+    const unitSize = PENTOMINO_UNIT_SIZE; // <--- USES THE NEW CONSTANT
 
     return {
         id: `PENT_${key}`,
@@ -68,8 +72,9 @@ function createPentominoAsset(key, color) {
         color: color,
         // The overall size is determined by the bounding box of the coordinates
         size: [
-            Math.max(...relativeCoords.map(c => Math.abs(c[0]))) * 2 + unitSize,
-            Math.max(...relativeCoords.map(c => Math.abs(c[1]))) * 2 + unitSize,
+            // Max dimension * 2 (to cover both positive and negative) + 1 (for the unit cube itself)
+            Math.max(...relativeCoords.map(c => Math.abs(c[0]))) * 2 * unitSize + unitSize,
+            Math.max(...relativeCoords.map(c => Math.abs(c[1]))) * 2 * unitSize + unitSize,
             unitSize // Thickness
         ],
 
@@ -80,7 +85,8 @@ function createPentominoAsset(key, color) {
          */
         createMesh: (thickness = unitSize) => {
             const group = new Group();
-            const geometry = new BoxGeometry(unitSize, unitSize, thickness);
+            // Dimensions are based on the unit size
+            const geometry = new BoxGeometry(unitSize, unitSize, thickness); 
             const material = new MeshBasicMaterial({ color: color, wireframe: false });
 
             relativeCoords.forEach(([x, y, z]) => {
@@ -95,9 +101,7 @@ function createPentominoAsset(key, color) {
         },
 
         /**
-         * Creates a CANNON.js Body representing the piece (mass: 0 for static placement).
-         * Note: CANNON.js doesn't support Compound shapes in the default Body constructor.
-         * We create a static Body and add the individual Box shapes.
+         * Creates a CANNON.js Body representing the piece (mass: 20 for dynamic, falling).
          * @param {window.THREE.Vector3} position - The world position.
          * @param {window.THREE.Euler} rotation - The world rotation.
          * @returns {window.CANNON.Body}
@@ -108,7 +112,7 @@ function createPentominoAsset(key, color) {
             const cubeShape = new Box(halfExtents);
 
             const body = new Body({
-                mass: 20, // Static object
+                mass: 200, // Default dynamic mass
                 position: new Vec3(position.x, position.y, position.z),
             });
             body.quaternion.setFromEuler(rotation.x, rotation.y, rotation.z);

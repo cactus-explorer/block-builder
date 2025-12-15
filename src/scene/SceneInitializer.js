@@ -256,8 +256,8 @@ function initDynamicObjects(manager) {
         const threeBoxMaterial = new MeshBasicMaterial( { color: randomColor, wireframe: false } );
         const boxMesh = new Mesh( threeBoxGeometry, threeBoxMaterial );
 
-        const x = Math.random() * 150 - 75; // Random x between -75 and 75
-        const z = Math.random() * 150 - 75; // Random z between -75 and 75
+        const x = Math.random() * 50 - (50 / 2); // Random x between -75 and 75
+        const z = Math.random() * 50 - (50 / 2); // Random z between -75 and 75
         const y = size / 2 + 0.1; // Ensure it starts slightly above ground
 
         boxMesh.position.set(x, y, z);
