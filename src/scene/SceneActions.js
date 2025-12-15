@@ -34,13 +34,13 @@ function restartGame() {
     this.setMovementEnabled(false);
 
     if (this.playerBody) {
-        this.playerBody.set(0, 10, 0);
+        this.playerBody.position.set(0, 2, 0);
         this.playerBody.velocity.set(0, 0, 0);
         this.playerBody.quaternion.set(0, 0, 0, 1);
     }
 
     if (this.cameraParent) {
-        this.cameraParent.position.set(0, 10, 0);
+        this.cameraParent.position.set(0, 2, 0);
     }
 
     if (this._fadeState && this._fadeState.overlayMesh) {
@@ -79,11 +79,7 @@ function setupKeyboardRestartListener(manager) {
         if (event.code === 'KeyR') {
             event.preventDefault();
 
-            if (!manager.movementEnabled) {
-                manager.restartGame();
-            } else {
-
-            }
+            manager.restartGame();
         }
     });
     console.log("Restart listener activated");
