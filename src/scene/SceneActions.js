@@ -19,12 +19,49 @@ import {
  * Handles the player jump action.
  */
 function handleJump() {
+    if (!this.movementEnabled) return;
+
     if (this.isGrounded && this.playerBody) { 
         this.playerBody.velocity.y = JUMP_VELOCITY;
         this.isGrounded = false; 
     }
 }
 
+/**
+ * Resets the player's position and game state to the starting conditions.
+ */
+function restartGame() {
+    this.setMovementEnabled(false);
+
+    if (this.playerBody) {
+        this.playerBody.set(0, 10, 0);
+        this.playerBody.velocity.set(0, 0, 0);
+        this.playerBody.quaternion.set(0, 0, 0, 1);
+    }
+
+    if (this.cameraParent) {
+        this.cameraParent.position.set(0, 10, 0);
+    }
+
+    if (this._fadeState && this._fadeState.overlayMesh) {
+        this._fadeState.overlayMesh.material.opacity = 0.0;
+        this._fadeState.active = false;
+    }
+
+    this.setMovementEnabled(true);
+    console.log("Game restarted");
+}
+
+function setMovementEnabled(enabled) {
+    this.movementEnabled = enabled;
+    if (this.controls && typeof this.controls.setEnabled === 'function') {
+        this.controls.setEnabled(enabled);
+    }
+    if (!enabled && this.playerBody) {
+        this.playerBody.velocity.set(0, 0, 0);
+    }
+    console.log(`Movement ${enabled ? 'ENABLED' : 'DISABLED'}.`);
+}
 
 // --- UI & RESIZE ---
 
@@ -37,16 +74,36 @@ function onWindowResize() {
     this.renderer.setSize(window.innerWidth, window.innerHeight);
 }
 
+function setupKeyboardRestartListener(manager) {
+    document.addEventListener('keydown', (event) => {
+        if (event.code === 'KeyR') {
+            event.preventDefault();
+
+            if (!manager.movementEnabled) {
+                manager.restartGame();
+            } else {
+
+            }
+        }
+    });
+    console.log("Restart listener activated");
+}
+
 /**
  * Binds all action and persistence methods to the SceneManager instance.
  * @param {SceneManager} manager - The instance of the SceneManager class.
  */
 export function setupActions(manager) {
     // Bind public methods to the instance to ensure `this` works correctly
+    manager.movementEnabled = true;
     manager.handleJump = handleJump.bind(manager);
+    manager.setMovementEnabled = setMovementEnabled.bind(manager);
+    manager.restartGame = restartGame.bind(manager);
 
     manager.onWindowResize = onWindowResize.bind(manager);
     manager.fadeScreenToRed = fadeScreenToRed.bind(manager);
+
+    setupKeyboardRestartListener(manager);
 }
 
 /**
@@ -93,6 +150,7 @@ function getOrCreateOverlayMesh(manager) {
 function fadeScreenToRed(targetColor = new Color(0xFF0000), maxOpacity = 0.8, duration = 0.3, onComplete = () => {}) {
     const overlayMesh = getOrCreateOverlayMesh(this);
     
+    this.setMovementEnabled(false);
     // Ensure the color is set if it changes
     overlayMesh.material.color.copy(targetColor);
 
@@ -106,7 +164,9 @@ function fadeScreenToRed(targetColor = new Color(0xFF0000), maxOpacity = 0.8, du
         peakTime: peakTime,
         maxOpacity: maxOpacity,
         overlayMesh: overlayMesh,
-        onComplete: onComplete,
+        onComplete: () => {
+            onComplete();
+        },
     };
     
     console.log("Fading to red overlay...");

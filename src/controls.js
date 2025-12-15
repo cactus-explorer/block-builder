@@ -7,10 +7,11 @@ export class FirstPersonControls {
      * @param {THREE.Group} cameraParent - The parent group (for yaw and position).
      * @param {HTMLElement} domElement - The DOM element to attach events to.
      */
-    constructor(camera, cameraParent, domElement) {
+    constructor(camera, cameraParent, domElement, manager) {
         this.camera = camera;
         this.cameraParent = cameraParent; // New property: the group being rotated horizontally
         this.domElement = domElement;
+        this.manager = manager;
         
         // Movement State
         this.movementSpeed = MOVEMENT_SPEED;
@@ -18,6 +19,8 @@ export class FirstPersonControls {
         this.moveBackward = false;
         this.moveLeft = false;
         this.moveRight = false;
+
+        this.controlsEnabled = true;
 
         // Action Callbacks
         this.onJump = () => {};
@@ -41,6 +44,28 @@ export class FirstPersonControls {
         this._onVisibilityChange = this._onVisibilityChange.bind(this);
         
         this._setupEventListeners();
+    }
+
+    /**
+     * Public method to enable/disable controls.
+     * @param {boolean} enabled
+     */
+    setControlsEnabled(enabled) {
+        this.controlsEnabled = enabled;
+        if (!enabled) {
+            this.unlock();
+            this.clearMovementState();
+        }
+    }
+
+    /**
+     * Clears all movement flags.
+     */
+    clearMovementState() {
+        this.moveForward = false;
+        this.moveBackward = false;
+        this.moveLeft = false;
+        this.moveRight = false;
     }
 
     _setupEventListeners() {
@@ -102,6 +127,9 @@ export class FirstPersonControls {
     // --- Mouse Input (Rotation) ---
     _onMouseMove(event) {
         if (this.isLocked === false) return;
+
+        if (this.manager && !this.manager.movementEnabled) return;
+
         event.preventDefault(); 
         
         // 1. Yaw (Horizontal Rotation) - Applies to the PARENT Group's Y-axis (world yaw)
@@ -118,7 +146,9 @@ export class FirstPersonControls {
     // --- Mouse Input (Actions) ---
     _onPointerDown(event) {
         if (this.isLocked === false) return;
-        event.preventDefault(); 
+        if (this.manager && !this.manager.movementEnabled) return;
+
+        event.preventDefault();
         
         switch (event.button) {
             case 0: // Left Click: Place Object
@@ -137,6 +167,8 @@ export class FirstPersonControls {
     // --- Keyboard Input (Movement & Actions) ---
     _onKeyDown(event) {
         if (this.isLocked === false) return;
+
+        if (this.manager && !this.manager.movementEnabled) return;
 
         switch (event.code) {
             case 'KeyW':
@@ -178,6 +210,8 @@ export class FirstPersonControls {
     _onKeyUp(event) {
         if (this.isLocked === false) return;
 
+        if (this.manager && !this.manager.movementEnabled) return;
+
         switch (event.code) {
             case 'KeyW':
             case 'ArrowUp':
@@ -200,6 +234,9 @@ export class FirstPersonControls {
 
     // This update function is called by KinematicMovement
     update(delta) {
+        if (this.manager && !this.manager.movementEnabled) {
+            this.clearMovementState();
+        }
         // Movement state is read here by KinematicMovement
     }
 }

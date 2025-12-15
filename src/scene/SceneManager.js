@@ -147,10 +147,10 @@ export class SceneManager {
         const baseMoveSpeed = MOVEMENT_SPEED; 
         const inputVelocityTHREE = new Vector3(0, 0, 0); // THREE.js Vector3 for clean calculations
 
-        if (this.controls.moveForward) inputVelocityTHREE.addScaledVector(_cameraDirection, baseMoveSpeed);
-        if (this.controls.moveBackward) inputVelocityTHREE.addScaledVector(_cameraDirection, -baseMoveSpeed);
-        if (this.controls.moveLeft) inputVelocityTHREE.addScaledVector(rightVector, baseMoveSpeed);
-        if (this.controls.moveRight) inputVelocityTHREE.addScaledVector(rightVector, -baseMoveSpeed);
+        if (this.controls.moveForward && this.movementEnabled) inputVelocityTHREE.addScaledVector(_cameraDirection, baseMoveSpeed);
+        if (this.controls.moveBackward && this.movementEnabled) inputVelocityTHREE.addScaledVector(_cameraDirection, -baseMoveSpeed);
+        if (this.controls.moveLeft && this.movementEnabled) inputVelocityTHREE.addScaledVector(rightVector, baseMoveSpeed);
+        if (this.controls.moveRight && this.movementEnabled) inputVelocityTHREE.addScaledVector(rightVector, -baseMoveSpeed);
 
         // Apply input velocity to the player body's current velocity (overriding x and z)
         // This is safe because inputVelocityTHREE is now using the correct units (m/s).
