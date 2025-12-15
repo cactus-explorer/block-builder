@@ -3,11 +3,11 @@
 // Access globally loaded libraries exposed by script tags
 const { 
     Group, Scene, PerspectiveCamera, WebGLRenderer, Clock, 
-    DirectionalLight, AmbientLight, Color, Vector3,
+    DirectionalLight, AmbientLight, Color, Vector3, Euler,
 } = window.THREE;
 
 const { 
-    World, Vec3, 
+    World, Vec3, Body,
 } = window.CANNON;
 
 import { initializeScene } from './SceneInitializer.js';
@@ -17,6 +17,7 @@ import {
     fixedTimeStep, maxSubSteps, playerRadius, MOVEMENT_SPEED,
     _cameraDirection
 } from '../constants.js'; 
+import { PENTOMINO_ASSETS, PENTOMINO_KEYS } from '../data/Pentominos.js';
 
 export class SceneManager {
     constructor(container) {
@@ -46,6 +47,12 @@ export class SceneManager {
 
         // Asset/Color Selection
         this.assetIndex = 0;
+
+        // === NEW: Pentomino Drop State ===
+        this.lastDropTime = 0;
+        this.dropInterval = 2.0; // Drop every 2 seconds
+        this.dropZoneSize = 100; // Pentominoes drop within a 100x100 area
+        this.dropHeight = 50;    // Pentominoes start 50 units above ground
         
         // --- Action Binding Delegation ---
         setupActions(this);
@@ -94,16 +101,16 @@ export class SceneManager {
         requestAnimationFrame(this.animate.bind(this));
 
         const delta = this.clock.getDelta();
+        const elapsed = this.clock.getElapsedTime();
+
+        // === NEW: Pentomino Drop Logic ===
+        if (document.hasFocus() && elapsed > this.lastDropTime + this.dropInterval) {
+            this.dropRandomPentomino();
+            this.lastDropTime = elapsed;
+        }
         
         // 1. Update Cannon.js Physics World
         this.world.step(fixedTimeStep, delta, maxSubSteps);
-        
-        // === TEMPORARY DEBUG LINE: Check Player Y Position ===
-        // This is the line that was showing NaN
-        const elapsed = this.clock.getElapsedTime();
-        if (elapsed - this._lastLogTime > 0.5) { 
-            this._lastLogTime = elapsed;
-        }
         // ====================================================
 
         // 2. Update Player Movement Physics
@@ -138,13 +145,16 @@ export class SceneManager {
         // Update Camera Parent position to match player physics body
         this.cameraParent.position.copy(this.playerBody.position); 
         
-        // Synchronize Dynamic (pushable) Boxes
+// Synchronize Dynamic (pushable/dropping) Boxes
         for (let i = 0; i < this.dynamicMeshes.length; i++) {
             const mesh = this.dynamicMeshes[i];
             const body = this.dynamicBodies[i];
             
-            mesh.position.copy(body.position);
-            mesh.quaternion.copy(body.quaternion);
+            // Check if body is in the world before copying position
+            if (body.world) {
+                mesh.position.copy(body.position);
+                mesh.quaternion.copy(body.quaternion);
+            }
         }
 
         // 5. Update Placement Tool
@@ -154,5 +164,49 @@ export class SceneManager {
 
         // 6. Render
         this.renderer.render(this.scene, this.camera);
+    }
+
+    /**
+     * Creates and drops a single random Pentomino piece from the sky.
+     */
+    dropRandomPentomino() {
+        // 1. Select a random Pentomino asset
+        const randomIndex = Math.floor(Math.random() * PENTOMINO_ASSETS.length);
+        const asset = PENTOMINO_ASSETS[randomIndex];
+        
+        // 2. Determine random position (X, Z) and height (Y)
+        const x = (Math.random() * this.dropZoneSize) - (this.dropZoneSize / 2); // -50 to 50
+        const z = (Math.random() * this.dropZoneSize) - (this.dropZoneSize / 2); // -50 to 50
+        const y = this.dropHeight;
+        
+        const initialPosition = new Vector3(x, y, z);
+
+        // 3. Determine random rotation (X, Y, Z) for complex orientations
+        // Rotate in 90-degree increments for easier stacking, but mirror randomly.
+        const rx = Math.floor(Math.random() * 4) * Math.PI / 2; // 0, 90, 180, 270 degrees
+        const ry = Math.floor(Math.random() * 4) * Math.PI / 2;
+        const rz = Math.floor(Math.random() * 4) * Math.PI / 2;
+        const initialRotation = new Euler(rx, ry, rz);
+        
+        // 4. Create THREE.js Mesh Group
+        const pieceMesh = asset.createMesh(1); // 1 is the thickness
+        pieceMesh.position.copy(initialPosition);
+        pieceMesh.rotation.copy(initialRotation);
+        this.scene.add(pieceMesh);
+
+        // 5. Create CANNON.js Dynamic Body (Mass > 0 to fall)
+        const pieceBody = asset.createBody(initialPosition, initialRotation);
+        
+        // Overwrite mass to make it dynamic (e.g., mass based on volume/density)
+        // A mass of 5 units * 10 = 50 is a good starting point.
+        pieceBody.mass = 50; 
+        pieceBody.type = Body.DYNAMIC;
+        this.world.addBody(pieceBody);
+        
+        // 6. Store the new dynamic pieces 
+        this.dynamicMeshes.push(pieceMesh);
+        this.dynamicBodies.push(pieceBody);
+        
+        console.log(`Dropped Pentomino ${asset.key} at X:${x.toFixed(1)}, Z:${z.toFixed(1)}`);
     }
 }

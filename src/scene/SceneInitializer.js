@@ -43,8 +43,7 @@ function initThree(manager) {
     
     // 4. CAMERA
     // Camera is positioned at (0,0,0) relative to its parent group
-    const camera = new PerspectiveCamera( 30, window.innerWidth / window.innerHeight, 1, 1500 );
-    camera.position.set( 0, playerRadius, 0); 
+    const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );    camera.position.set( 0, playerRadius, 0); 
     manager.cameraParent.add( camera );
     manager.camera = camera; // Attach to manager
 
