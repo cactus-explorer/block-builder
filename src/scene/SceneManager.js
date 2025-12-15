@@ -12,7 +12,6 @@ const {
 
 import { initializeScene } from './SceneInitializer.js';
 import { setupActions } from './SceneActions.js';
-import { DECORATION_ASSET_KEYS } from '../data/AssetCatalog.js'; 
 import { 
     fixedTimeStep, maxSubSteps, playerRadius, MOVEMENT_SPEED,
     _cameraDirection
@@ -78,8 +77,6 @@ export class SceneManager {
             console.warn("⚠️ Scene seems sparsely populated. Check if objects (floor, boxes) were added correctly in SceneInitializer.");
         }
         
-        this.updateAssetSelectionUI();
-
         // Used for logging player position every half second
         this._lastLogTime = 0; 
     }
@@ -177,11 +174,6 @@ export class SceneManager {
             }
         }
 
-        // 5. Update Placement Tool
-        const currentAssetKey = DECORATION_ASSET_KEYS[this.assetIndex];
-        this.placementTool.updateGhostPosition(currentAssetKey);
-
-
         // 6. Render
         this.renderer.render(this.scene, this.camera);
     }
@@ -226,7 +218,5 @@ export class SceneManager {
         // 6. Store the new dynamic pieces 
         this.dynamicMeshes.push(pieceMesh);
         this.dynamicBodies.push(pieceBody);
-        
-        console.log(`Dropped Pentomino ${asset.key} at X:${x.toFixed(1)}, Z:${z.toFixed(1)}`);
     }
 }

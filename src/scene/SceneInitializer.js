@@ -14,9 +14,6 @@ const {
 } = window.CANNON;
 
 import { FirstPersonControls } from '../controls.js';
-import { PlacementTool } from './PlacementTool.js';
-import { dataService } from '../data/DataService.js';
-import { ASSETS, DECORATION_ASSET_KEYS } from '../data/AssetCatalog.js';
 import { 
     playerRadius, blockColors, 
 } from '../constants.js';
@@ -177,7 +174,6 @@ function initPhysics(manager) {
     
     const floorMesh = new Mesh( floorGeometry, floorMeshMaterial );
     floorMesh.rotation.x = - Math.PI / 2;
-    floorMesh.userData.assetId = ASSETS.FLOOR.id; 
     manager.scene.add( floorMesh );
 
     const wallLength = 50;
@@ -299,24 +295,6 @@ function initControls(manager) {
     manager.controls.onRotateObject = manager.rotateObject;
     manager.controls.onColorChange = manager.changeAsset;
 }
-
-function initGameMechanics(manager) {
-    manager.placementTool = new PlacementTool(
-        manager.scene, 
-        manager.camera, 
-        () => ASSETS[DECORATION_ASSET_KEYS[manager.assetIndex]]
-    );
-    manager.placementTool.initGhostBlock();
-    manager.placementTool.updateGhostVisuals(DECORATION_ASSET_KEYS[manager.assetIndex]);
-}
-
-function setupDataListeners(manager) {
-    dataService.subscribeToProject(manager.loadProject);
-    
-    document.getElementById('saveButton').addEventListener('click', manager.saveProject);
-    document.getElementById('deleteButton').addEventListener('click', manager.deleteLastObject);
-}
-
 /**
  * Main function to initialize all parts of the scene manager.
  * @param {SceneManager} manager - The instance of the SceneManager class.
@@ -326,7 +304,5 @@ export function initializeScene(manager) {
     initPhysics(manager);
     initDynamicObjects(manager);
     initControls(manager);
-    initGameMechanics(manager);
-    setupDataListeners(manager);
     setupCollisionDetection(manager);
 }
