@@ -171,6 +171,11 @@ function initControls(manager) {
         }
     });
 
+    manager.controls.onFadeScreen = () => {
+        // Fade to red (0xFF0000) over 0.3 seconds.
+        manager.fadeScreenToRed();
+    };
+
     manager.controls.onJump = manager.handleJump; 
     manager.controls.onPlaceObject = manager.placeObject;
     manager.controls.onRotateObject = manager.rotateObject;

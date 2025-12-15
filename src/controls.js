@@ -24,6 +24,7 @@ export class FirstPersonControls {
         this.onPlaceObject = () => {};
         this.onRotateObject = () => {};
         this.onColorChange = () => {}; // Used for Q/E keys
+        this.onFadeScreen = () => {}; // <--- NEW: Fade screen action
 
         // Mouse sensitivity (rotation speed)
         this.mouseSensitivity = 0.002;
@@ -164,6 +165,9 @@ export class FirstPersonControls {
                 break;
             case 'KeyE':
                 this.onColorChange(1); // Cycle forward
+                break;
+            case 'KeyF': // <--- NEW: Trigger Fade
+                this.onFadeScreen();
                 break;
             case 'Escape':
                 this.unlock();
