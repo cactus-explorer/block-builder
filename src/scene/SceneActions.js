@@ -102,6 +102,9 @@ export function setupActions(manager) {
 
     manager.onWindowResize = onWindowResize.bind(manager);
     manager.fadeScreenToRed = fadeScreenToRed.bind(manager);
+1
+    manager.updateScore = updateScore.bind(manager);
+    manager.updateAssetSelectionUI = updateAssetSelectionUI.bind(manager);
 
     setupKeyboardRestartListener(manager);
 }
@@ -170,4 +173,79 @@ function fadeScreenToRed(targetColor = new Color(0xFF0000), maxOpacity = 0.8, du
     };
     
     console.log("Fading to red overlay...");
+}
+
+/**
+ * Updates the score property and the displayed score element.
+ * @param {number} points - The amount to add to the current score.
+ */
+function updateScore(points) {
+    this.score += points;
+    if (this.scoreElement) {
+        this.scoreElement.textContent = `SCORE: ${this.score}`;
+    }
+}
+
+/**
+ * Updates the asset selection UI based on the current assetIndex.
+ * * NOTE: This function assumes the existence of the following properties 
+ * on the 'this' (SceneManager) instance:
+ * - this.assetIndex (number): The index of the currently selected asset.
+ * - this.changeAsset (function): The bound function to change the asset.
+ * - DECORATION_ASSET_KEYS (array): The list of keys for assets.
+ * - ASSETS (object): The asset catalog containing asset definitions.
+ */
+function updateAssetSelectionUI() {
+    // 1. Get the container element for the palette
+    const paletteContainer = document.getElementById('color-palette');
+    if (!paletteContainer) {
+        console.warn("UI element 'color-palette' not found. Skipping UI update.");
+        return;
+    }
+
+    // 2. Clear existing swatches
+    paletteContainer.innerHTML = '';
+    
+    // Check if the required asset data is available (assuming you load it similarly to Pentominoes)
+    if (!DECORATION_ASSET_KEYS || !ASSETS) {
+        console.error("Asset keys or catalog are undefined.");
+        return;
+    }
+
+    // 3. Generate new swatches for all available assets
+    DECORATION_ASSET_KEYS.forEach((key, index) => {
+        const asset = ASSETS[key];
+        
+        // Use the asset's specific color, or a fallback color if not defined
+        const hexColor = asset.color || 0xcccccc; 
+        
+        // Convert hex number to CSS string (e.g., #RRGGBB)
+        const colorObj = new window.THREE.Color(hexColor);
+        const cssColor = '#' + colorObj.getHexString();
+
+        const swatch = document.createElement('div');
+        swatch.id = `asset-swatch-${index}`;
+        
+        // Apply base CSS classes (assuming Tailwind/modern CSS for styling)
+        swatch.className = 'w-8 h-8 rounded-full border-2 border-white/50 transition-all duration-150 cursor-pointer';
+        swatch.style.backgroundColor = cssColor;
+        
+        // 4. Highlight the currently selected asset
+        if (index === this.assetIndex) {
+             // Add highlighting classes for the currently selected item
+             swatch.classList.add('ring-4', 'ring-offset-2', 'ring-yellow-400', 'ring-offset-gray-900/70', 'scale-110');
+        } else {
+             // Ensure non-selected items are not highlighted
+             swatch.classList.add('scale-100');
+        }
+        
+        // 5. Add click handler for direct selection
+        swatch.addEventListener('click', () => {
+            // Calculate the directional step needed to select this index
+            const direction = index - this.assetIndex; 
+            this.changeAsset(direction); 
+        });
+
+        paletteContainer.appendChild(swatch);
+    });
 }

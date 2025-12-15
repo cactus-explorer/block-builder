@@ -119,3 +119,17 @@ gap: 0.75rem;
 .ring-offset-2 { outline-offset: 2px; }
 .ring-yellow-400 { box-shadow: 0 0 0 4px #fbbf24; }
 .ring-offset-gray-900 { box-shadow: 0 0 0 2px rgba(17, 24, 39, 0.7); }
+
+/* NEW Score Tracker Style */
+.score-tracker {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    color: white; /* Choose a color that stands out from your scene */
+    font-size: 24px;
+    font-family: sans-serif;
+    padding: 10px 15px;
+    background-color: rgba(0, 0, 0, 0.4); /* Semi-transparent background */
+    border-radius: 5px;
+    pointer-events: none; /* Essential for overlay elements */
+}
